@@ -28,40 +28,47 @@ const ContextProvider = (props) => {
     setLoading(true);
     setShowResult(true); 
 
-    let response;
-    if(prompt !== undefined){
-      response = await runChat(prompt);
-      setRecentPrompt(prompt)
-    }else{
-      setPrevPrompts(prev=>[...prev, input])
-      setRecentPrompt(input);
-      response = await runChat(input)
-    }
-    // setRecentPrompt(input);
-    // setPrevPrompts(prev=>[...prev,input])
-    // const response = await runChat(input);
-    let responseArray =response.split("**");
-    let newResponse = '' ;
-    for(let i = 0 ; i< responseArray.length ; i++)
-    {
-      // iterate each word which is seprated by **
-
-      if(i === 0  || i%2 !== 1){
-        newResponse +=  responseArray[i];
+    try {
+      let response;
+      if(prompt !== undefined){
+        response = await runChat(prompt);
+        setRecentPrompt(prompt)
       }else{
-        newResponse +=  "<b>" +responseArray[i] + "</b>";
+        if(!input.trim()) {
+          setLoading(false);
+          setShowResult(false);
+          return;
+        }
+        setPrevPrompts(prev=>[...prev, input])
+        setRecentPrompt(input);
+        response = await runChat(input)
       }
+
+      let responseArray = response.split("**");
+      let newResponse = '' ;
+      for(let i = 0 ; i< responseArray.length ; i++)
+      {
+        // iterate each word which is seprated by **
+        if(i === 0  || i%2 !== 1){
+          newResponse +=  responseArray[i];
+        }else{
+          newResponse +=  "<b>" +responseArray[i] + "</b>";
+        }
+      }
+      let newResponse2 = newResponse.split("*").join("</br>")
+      let newResponseArray = newResponse2.split(" ");
+      for(let i =0; i< newResponseArray.length; i++)
+      {
+        const nextWord = newResponseArray[i];
+        delayPara(i , nextWord+ " ")
+      }
+      setLoading(false);
+      setInput("");
+    } catch (error) {
+      console.error("Error in onSent:", error);
+      setResult(`<p style="color: red;">Error: ${error.message}</p>`);
+      setLoading(false);
     }
-    let newResponse2 = newResponse.split("*").join("</br>")
-    // setResult(newResponse2);
-    let newResponseArray = newResponse2.split(" ");
-    for(let i =0; i< newResponseArray.length; i++)
-    {
-      const nextWord = newResponseArray[i];
-      delayPara(i , nextWord+ " ")
-    }
-    setLoading(false);
-    setInput("");
   };
 
   // onSent(prompt)
